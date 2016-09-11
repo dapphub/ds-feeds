@@ -9,3 +9,8 @@ environments:
       feedbase:
         class: Feedbase
         address: '0x5927c5cc723c4486f93bf90bad3be8831139499e'
+  live:
+    objects:
+      feedbase:
+        class: Feedbase
+        address: '0xdb0be7534f38da174ad5dbdd9069c7d66e528cec'

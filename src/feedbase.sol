@@ -39,6 +39,8 @@
 
 /// Code:
 
+pragma solidity ^0.4.4;
+
 import "erc20/erc20.sol";
 
 contract FeedbaseEvents {
@@ -128,7 +130,7 @@ contract Feedbase is FeedbaseEvents {
 
     modifier auth(uint24 id) {
         assert(msg.sender == owner(id));
-        _
+        _;
     }
 
     //------------------------------------------------------------------
@@ -210,6 +212,6 @@ contract Feedbase is FeedbaseEvents {
 
     modifier pseudo_internal() {
         assert(msg.sender == address(this));
-        _
+        _;
     }
 }

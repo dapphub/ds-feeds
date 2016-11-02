@@ -21,6 +21,8 @@
 
 /// Code:
 
+pragma solidity ^0.4.4;
+
 import "dapple/test.sol";
 import "erc20/erc20.sol";
 import "feedbase.sol";

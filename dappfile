@@ -1,6 +1,5 @@
 name: feedbase
 version: 0.9
-dapple_version: 0.8.20
 layout:
   sol_sources: src
   build_dir: build
@@ -13,10 +12,11 @@ environments:
   morden:
     objects:
       feedbase:
-        class: Feedbase
-        address: '0x5927c5cc723c4486f93bf90bad3be8831139499e'
+        value: '0x24dd13467102c94a67f0108aa77d698bbbdadfe6'
+        type: >-
+          Feedbase[486f9a4a7b09eeca05a9d5a2737aab85439f13b71f624f50cdb803dbc4a1b241]
+    type: MORDEN
   live:
-    objects:
-      feedbase:
-        class: Feedbase
-        address: '0xdb0be7534f38da174ad5dbdd9069c7d66e528cec'
+    objects: {}
+    type: UNKNOWN
+dapple_version: 0.8.20

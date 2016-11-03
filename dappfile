@@ -8,11 +8,11 @@ dependencies: {}
 environments:
   develop:
     objects: {}
-    type: internal
+    type: TestRPC
   morden:
     objects:
       feedbase:
-        value: '0x24dd13467102c94a67f0108aa77d698bbbdadfe6'
+        value: '0x3c4cccf54cb4eea3d5b51943273eb28a4f2bf8b1'
         type: >-
           Feedbase[486f9a4a7b09eeca05a9d5a2737aab85439f13b71f624f50cdb803dbc4a1b241]
     type: MORDEN

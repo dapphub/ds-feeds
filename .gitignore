@@ -1,4 +1,4 @@
 /build/__*
 /build/classes.json
 /node_modules
-.dapple/chain_db
+/.dapple/chain_db

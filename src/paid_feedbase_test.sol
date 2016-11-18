@@ -25,16 +25,17 @@ pragma solidity ^0.4.4;
 
 import "dapple/test.sol";
 import "erc20/erc20.sol";
-import "feedbase.sol";
+import "./interface.sol";
+import "./paid_feedbase.sol";
 
-contract FeedbaseTest is Test,
-    FeedbaseEvents
+contract PaidFeedbaseTest is Test,
+    PaidFeedbaseEvents
 {
-    FakePerson  assistant  = new FakePerson();
-    FakeToken   token      = new FakeToken();
-    Feedbase    feedbase   = new Feedbase();
+    FakePerson    assistant  = new FakePerson();
+    FakeToken     token      = new FakeToken();
+    PaidFeedbase  feedbase   = new PaidFeedbase();
 
-    uint24      id;
+    bytes12       id;
 
     function setUp() {
         assistant._target(feedbase);
@@ -54,7 +55,7 @@ contract FeedbaseTest is Test,
         expectEventsExact(feedbase);
 
         id = feedbase.claim();
-        LogClaim(id, address(this), ERC20(0x0));
+        LogClaim(id, address(this));
 
         feedbase.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
@@ -159,7 +160,7 @@ contract FeedbaseTest is Test,
     }
 
     function testFail_set_price_unauth() {
-        Feedbase(assistant).set_price(id, 50);
+        PaidFeedbase(assistant).set_price(id, 50);
     }
 
     function test_set_owner() {
@@ -168,7 +169,7 @@ contract FeedbaseTest is Test,
         feedbase.set_owner(id, assistant);
         LogSetOwner(id, assistant);
 
-        Feedbase(assistant).set_price(id, 50);
+        PaidFeedbase(assistant).set_price(id, 50);
         LogSetPrice(id, 50);
 
         assertEq(feedbase.price(id), 50);
@@ -193,7 +194,7 @@ contract FeedbaseTest is Test,
 }
 
 contract FakePerson is Tester {
-    function get(uint24 id) returns (bytes32, bool) {
+    function get(bytes12 id) returns (bytes32, bool) {
         return Feedbase(_t).get(id);
     }
 }

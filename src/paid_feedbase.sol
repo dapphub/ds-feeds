@@ -25,7 +25,7 @@ contract PaidFeedbaseEvents is FeedbaseEvents {
     event LogPay       (bytes12 indexed id, address indexed user);
 }
 
-contract PaidFeedbase is Feedbase {
+contract PaidFeedbase is PaidFeedbaseEvents, Feedbase {
     mapping(bytes12=>FeeConfig) fee_config;
     struct FeeConfig {
         ERC20      token;
@@ -44,7 +44,6 @@ contract PaidFeedbase is Feedbase {
     function free(bytes12 id) constant returns (bool) {
         return token(id) == ERC20(0);
     }
-
     function claim(ERC20 token) returns (bytes12 id) {
         id = super.claim();
         fee_config[id].token = token;
@@ -52,7 +51,7 @@ contract PaidFeedbase is Feedbase {
     }
     function set(bytes12 id, bytes32 value, uint40 expiration) {
         super.set(id, value, expiration);
-        feeds[id].unpaid     = !free(id);
+        fee_config[id].unpaid     = !free(id);
     }
     function set_price(bytes12 id, uint price)
         feed_auth(id)
@@ -72,7 +71,7 @@ contract PaidFeedbase is Feedbase {
     function pay(address user, bytes12 id)
         pseudo_internal
     {
-        feeds[id].unpaid = false;
+        fee_config[id].unpaid = false;
         LogPay(id, user);
 
         // Convert any `false' return value into an exception:

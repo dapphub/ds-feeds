@@ -62,19 +62,19 @@ contract Feedbase is FeedbaseEvents {
         uint40     expiration;
     }
 
-    function owner(uint24 id) constant returns (address) {
+    function owner(bytes12 id) constant returns (address) {
         return feeds[id].owner;
     }
-    function label(uint24 id) constant returns (bytes32) {
+    function label(bytes12 id) constant returns (bytes32) {
         return feeds[id].label;
     }
-    function timestamp(uint24 id) constant returns (uint40) {
+    function timestamp(bytes12 id) constant returns (uint40) {
         return feeds[id].timestamp;
     }
-    function expiration(uint24 id) constant returns (uint40) {
+    function expiration(bytes12 id) constant returns (uint40) {
         return feeds[id].expiration;
     }
-    function expired(uint24 id) constant returns (bool) {
+    function expired(bytes12 id) constant returns (bool) {
         return time() >= expiration(id);
     }
 
@@ -83,18 +83,18 @@ contract Feedbase is FeedbaseEvents {
     //------------------------------------------------------------------
 
     function claim() returns (bytes12 id) {
-        var asnum = uint96(next);
-        assert(asnum > 0);
-
         id = next;
-        next = bytes12((uint96(id))++);
+        assert(id != 0x0);
+
+        var as_num = uint96(id);
+        next = bytes12(as_num++);
 
         feeds[id].owner = msg.sender;
 
         LogClaim(id, msg.sender);
     }
 
-    modifier feed_auth(uint24 id) {
+    modifier feed_auth(bytes12 id) {
         assert(msg.sender == owner(id));
         _;
     }

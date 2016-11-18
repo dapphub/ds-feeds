@@ -86,12 +86,12 @@ contract Feedbase is FeedbaseEvents {
         id = next;
         assert(id != 0x0);
 
-        var as_num = uint96(id);
-        next = bytes12(as_num++);
+        next = bytes12(uint96(next)+1);
 
         feeds[id].owner = msg.sender;
 
         LogClaim(id, msg.sender);
+        return id;
     }
 
     modifier feed_auth(bytes12 id) {
@@ -137,15 +137,13 @@ contract Feedbase is FeedbaseEvents {
         }
     }
 
+    // Override for PaidFeedbase
     function can_get(address user, bytes12 id)
         internal returns (bool)
     {
         if (expired(id)) {
             return false;
-        }// else if (unpaid(id)) {
-        //    return try_pay(user, id);
-        // }
-        else {
+        } else {
             return true;
         }
     }

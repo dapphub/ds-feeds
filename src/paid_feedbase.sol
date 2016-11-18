@@ -49,6 +49,20 @@ contract PaidFeedbase is PaidFeedbaseEvents, Feedbase {
         fee_config[id].token = token;
         return id;
     }
+    function can_get(address user, bytes12 id)
+        internal returns (bool)
+    {
+        if (expired(id)) {
+            return false;
+        } else if (unpaid(id)) {
+            return try_pay(user, id);
+        }
+        else {
+            return true;
+        }
+    }
+
+
     function set(bytes12 id, bytes32 value, uint40 expiration) {
         super.set(id, value, expiration);
         fee_config[id].unpaid     = !free(id);

@@ -43,18 +43,9 @@ pragma solidity ^0.4.4;
 
 import "erc20/erc20.sol";
 
-contract FeedbaseEvents {
-    event LogClaim     (uint24 indexed id, address owner, ERC20 token);
-    event LogSet       (uint24 indexed id, bytes32 value, uint40 expiration);
-    event LogSetPrice  (uint24 indexed id, uint price);
-    event LogSetOwner  (uint24 indexed id, address owner);
-    event LogSetLabel  (uint24 indexed id, bytes32 label);
-    event LogPay       (uint24 indexed id, address user);
-}
-
 contract Feedbase is FeedbaseEvents {
-    mapping (uint24 => Feed) feeds;
-    uint24 next = 1;
+    mapping (bytes12 => Feed) feeds;
+    bytes12 next = 0x1;
 
     function time() internal returns (uint40) {
         return uint40(now);

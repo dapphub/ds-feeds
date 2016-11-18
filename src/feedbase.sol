@@ -21,9 +21,9 @@
 
 /// Commentary:
 
-// One reason why we use `uint24' for feed IDs is to help prevent
+// One reason why we use `bytes12' for feed IDs is to help prevent
 // accidentally confusing different values of the same integer type:
-// because `uint24' is an unusual type, it becomes a lot less likely
+// because `bytes12' is an unusual type, it becomes a lot less likely
 // for someone to confuse a feed ID with some other kind of value.
 //
 // (For example, this is very error-prone when dealing with functions
@@ -32,16 +32,14 @@
 // Another reason is simply to avoid wasting storage, and a third is
 // to make the IDs fit in other contexts (such as JavaScript numbers).
 //
-// While this means that only 16,777,215 feeds can ever be claimed,
-// they should simply acquire a price if we ever start running out.
-//
 // Finally, for programming convenience, feeds start at 1 (not 0).
 
 /// Code:
 
 pragma solidity ^0.4.4;
 
-import "erc20/erc20.sol";
+import "./interface.sol";
+
 
 contract Feedbase is FeedbaseEvents {
     mapping (bytes12 => Feed) feeds;
@@ -56,24 +54,12 @@ contract Feedbase is FeedbaseEvents {
     }
 
     struct Feed {
-        ERC20      token;
-
         address    owner;
         bytes32    label;
-        uint       price;
 
         bytes32    value;
         uint40     timestamp;
         uint40     expiration;
-
-        bool       unpaid;
-    }
-
-    function token(uint24 id) constant returns (ERC20) {
-        return feeds[id].token;
-    }
-    function free(uint24 id) constant returns (bool) {
-        return token(id) == ERC20(0);
     }
 
     function owner(uint24 id) constant returns (address) {
@@ -82,10 +68,6 @@ contract Feedbase is FeedbaseEvents {
     function label(uint24 id) constant returns (bytes32) {
         return feeds[id].label;
     }
-    function price(uint24 id) constant returns (uint) {
-        return feeds[id].price;
-    }
-
     function timestamp(uint24 id) constant returns (uint40) {
         return feeds[id].timestamp;
     }
@@ -96,30 +78,23 @@ contract Feedbase is FeedbaseEvents {
         return time() >= expiration(id);
     }
 
-    function unpaid(uint24 id) constant returns (bool) {
-        return feeds[id].unpaid;
-    }
-
     //------------------------------------------------------------------
     // Creating feeds
     //------------------------------------------------------------------
 
-    function claim() returns (uint24 id) {
-        return claim(ERC20(0));
-    }
+    function claim() returns (bytes12 id) {
+        var asnum = uint96(next);
+        assert(asnum > 0);
 
-    function claim(ERC20 token) returns (uint24 id) {
-        assert(next > 0);
+        id = next;
+        next = bytes12((uint96(id))++);
 
-        id = next++;
-
-        feeds[id].token = token;
         feeds[id].owner = msg.sender;
 
-        LogClaim(id, msg.sender, token);
+        LogClaim(id, msg.sender);
     }
 
-    modifier auth(uint24 id) {
+    modifier feed_auth(uint24 id) {
         assert(msg.sender == owner(id));
         _;
     }
@@ -128,34 +103,25 @@ contract Feedbase is FeedbaseEvents {
     // Updating feeds
     //------------------------------------------------------------------
 
-    function set(uint24 id, bytes32 value, uint40 expiration)
-        auth(id)
+    function set(bytes12 id, bytes32 value, uint40 expiration)
+        feed_auth(id)
     {
         feeds[id].value      = value;
         feeds[id].timestamp  = uint40(time());
         feeds[id].expiration = expiration;
-        feeds[id].unpaid     = !free(id);
 
         LogSet(id, value, expiration);
     }
 
-    function set_price(uint24 id, uint price)
-        auth(id)
-    {
-        assert(!free(id));
-        feeds[id].price = price;
-        LogSetPrice(id, price);
-    }
-
-    function set_owner(uint24 id, address owner)
-        auth(id)
+    function set_owner(bytes12 id, address owner)
+        feed_auth(id)
     {
         feeds[id].owner = owner;
         LogSetOwner(id, owner);
     }
 
-    function set_label(uint24 id, bytes32 label)
-        auth(id)
+    function set_label(bytes12 id, bytes32 label)
+        feed_auth(id)
     {
         feeds[id].label = label;
         LogSetLabel(id, label);
@@ -165,44 +131,23 @@ contract Feedbase is FeedbaseEvents {
     // Reading feeds
     //------------------------------------------------------------------
 
-    function get(uint24 id) returns (bytes32 value, bool ok) {
+    function get(bytes12 id) returns (bytes32 value, bool ok) {
         if (can_get(msg.sender, id)) {
             return (feeds[id].value, true);
         }
     }
 
-    function can_get(address user, uint24 id)
+    function can_get(address user, bytes12 id)
         internal returns (bool)
     {
         if (expired(id)) {
             return false;
-        } else if (unpaid(id)) {
-            return try_pay(user, id);
-        } else {
+        }// else if (unpaid(id)) {
+        //    return try_pay(user, id);
+        // }
+        else {
             return true;
         }
     }
 
-    function try_pay(address user, uint24 id)
-        internal returns (bool)
-    {
-        // Convert any exceptions back into `false':
-        var pay_function = bytes4(sha3("pay(address,uint24)"));
-        return this.call(pay_function, user, id);
-    }
-
-    function pay(address user, uint24 id)
-        pseudo_internal
-    {
-        feeds[id].unpaid = false;
-        LogPay(id, user);
-
-        // Convert any `false' return value into an exception:
-        assert(token(id).transferFrom(user, owner(id), price(id)));
-    }
-
-    modifier pseudo_internal() {
-        assert(msg.sender == address(this));
-        _;
-    }
 }

@@ -8,7 +8,7 @@ dependencies: {}
 environments:
   develop:
     objects: {}
-    type: TestRPC
+    type: internal
   morden:
     objects:
       feedbase:
@@ -19,4 +19,11 @@ environments:
   live:
     objects: {}
     type: UNKNOWN
-dapple_version: 0.8.23
+  ropsten:
+    objects:
+      feedbase:
+        value: '0x39708debbc537454ca33de154669c4bf6ddef8c9'
+        type: >-
+          Feedbase[486f9a4a7b09eeca05a9d5a2737aab85439f13b71f624f50cdb803dbc4a1b241]
+    type: ropsten
+dapple_version: 0.8.36

@@ -60,7 +60,7 @@ contract PaidFeedbaseTest is Test,
         feedbase.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
-        var (value, ok) = assistant.get(id);
+        var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0x1234);
         assertTrue(ok);
     }
@@ -71,7 +71,7 @@ contract PaidFeedbaseTest is Test,
         feedbase.set(id, 0x1234, 123);
         LogSet(id, 0x1234, 123);
 
-        var (value, ok) = feedbase.get(id);
+        var (value, ok) = feedbase.tryGet(id);
         assertEq32(value, 0);
         assertFalse(ok);
     }
@@ -87,7 +87,7 @@ contract PaidFeedbaseTest is Test,
 
         token.set_balance(assistant, 2000);
 
-        var (value, ok) = assistant.get(id);
+        var (value, ok) = assistant.tryGet(id);
         LogPay(id, assistant);
         assertEq32(value, 0x1234);
         assertTrue(ok);
@@ -106,12 +106,12 @@ contract PaidFeedbaseTest is Test,
 
         token.set_balance(assistant, 2000);
 
-        var (value_1, ok_1) = assistant.get(id);
+        var (value_1, ok_1) = assistant.tryGet(id);
         LogPay(id, assistant);
         assertEq32(value_1, 0x1234);
         assertTrue(ok_1);
 
-        var (value_2, ok_2) = assistant.get(id);
+        var (value_2, ok_2) = assistant.tryGet(id);
         assertEq32(value_2, 0x1234);
         assertTrue(ok_2);
 
@@ -129,7 +129,7 @@ contract PaidFeedbaseTest is Test,
 
         token.set_balance(assistant, 49);
 
-        var (value, ok) = assistant.get(id);
+        var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0);
         assertFalse(ok);
 
@@ -148,7 +148,7 @@ contract PaidFeedbaseTest is Test,
         token.set_balance(assistant, 49);
         token.disable_throwing();
 
-        var (value, ok) = assistant.get(id);
+        var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0);
         assertFalse(ok);
 
@@ -194,8 +194,8 @@ contract PaidFeedbaseTest is Test,
 }
 
 contract FakePerson is Tester {
-    function get(bytes12 id) returns (bytes32, bool) {
-        return Feedbase(_t).get(id);
+    function tryGet(bytes12 id) returns (bytes32, bool) {
+        return Feedbase(_t).tryGet(id);
     }
 }
 

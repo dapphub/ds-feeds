@@ -41,7 +41,9 @@ pragma solidity ^0.4.4;
 import "./interface.sol";
 
 
-contract Feedbase is FeedbaseEvents {
+contract Feedbase is FeedbaseInterface
+                   , FeedbaseEvents
+{
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;
 
@@ -131,7 +133,21 @@ contract Feedbase is FeedbaseEvents {
     // Reading feeds
     //------------------------------------------------------------------
 
-    function get(bytes12 id) returns (bytes32 value, bool ok) {
+    function has(bytes12 id) returns (bool) {
+        if (expired(id)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function get(bytes12 id) returns (bytes32 value) {
+        var (val, ok) = tryGet(id);
+        if(!ok) throw;
+        return val;
+    }
+
+    function tryGet(bytes12 id) returns (bytes32 value, bool ok) {
         if (can_get(msg.sender, id)) {
             return (feeds[id].value, true);
         }
@@ -141,11 +157,7 @@ contract Feedbase is FeedbaseEvents {
     function can_get(address user, bytes12 id)
         internal returns (bool)
     {
-        if (expired(id)) {
-            return false;
-        } else {
-            return true;
-        }
+        return has(id);
     }
 
 }

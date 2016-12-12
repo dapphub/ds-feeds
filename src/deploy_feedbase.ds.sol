@@ -5,6 +5,6 @@ import "./feedbase.sol";
 
 contract DeployFeedbase is Script {
   function DeployFeedbase () {
-    exportObject("feedbase", new Feedbase());
+    exportObject("feedbase", new Feedbase200());
   }
 }

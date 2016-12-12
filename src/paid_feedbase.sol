@@ -20,12 +20,12 @@ import "erc20/erc20.sol";
 import "./interface.sol";
 import "./feedbase.sol";
 
-contract PaidFeedbaseEvents is FeedbaseEvents {
+contract PaidFeedbaseEvents is FeedbaseEvents200 {
     event LogSetPrice  (bytes12 indexed id, uint price);
     event LogPay       (bytes12 indexed id, address indexed user);
 }
 
-contract PaidFeedbase is PaidFeedbaseEvents, Feedbase {
+contract PaidFeedbase is PaidFeedbaseEvents, Feedbase200 {
     mapping(bytes12=>FeeConfig) fee_config;
     struct FeeConfig {
         ERC20      token;

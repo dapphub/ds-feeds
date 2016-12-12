@@ -1,5 +1,5 @@
 name: feedbase
-version: 0.9
+version: 0.10
 layout:
   sol_sources: src
   build_dir: build
@@ -9,21 +9,4 @@ environments:
   develop:
     objects: {}
     type: internal
-  morden:
-    objects:
-      feedbase:
-        value: '0xc5a0ae957108b20b22b61fd799baab70e68dea52'
-        type: >-
-          Feedbase[486f9a4a7b09eeca05a9d5a2737aab85439f13b71f624f50cdb803dbc4a1b241]
-    type: MORDEN
-  live:
-    objects: {}
-    type: UNKNOWN
-  ropsten:
-    objects:
-      feedbase:
-        value: '0x39708debbc537454ca33de154669c4bf6ddef8c9'
-        type: >-
-          Feedbase[486f9a4a7b09eeca05a9d5a2737aab85439f13b71f624f50cdb803dbc4a1b241]
-    type: ropsten
 dapple_version: 0.8.36

@@ -176,7 +176,7 @@ contract PaidFeedbaseTest is Test,
     }
 
     function testFail_set_owner_unauth() {
-        Feedbase(assistant).set_owner(id, assistant);
+        Feedbase200(assistant).set_owner(id, assistant);
     }
 
     function test_set_label() {
@@ -189,13 +189,13 @@ contract PaidFeedbaseTest is Test,
     }
 
     function testFail_set_label_unauth() {
-        Feedbase(assistant).set_label(id, "foo");
+        Feedbase200(assistant).set_label(id, "foo");
     }
 }
 
 contract FakePerson is Tester {
     function tryGet(bytes12 id) returns (bytes32, bool) {
-        return Feedbase(_t).tryGet(id);
+        return Feedbase200(_t).tryGet(id);
     }
 }
 

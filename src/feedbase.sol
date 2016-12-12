@@ -41,8 +41,8 @@ pragma solidity ^0.4.4;
 import "./interface.sol";
 
 
-contract Feedbase is FeedbaseInterface
-                   , FeedbaseEvents
+contract Feedbase200 is FeedbaseInterface200
+                      , FeedbaseEvents200
 {
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;

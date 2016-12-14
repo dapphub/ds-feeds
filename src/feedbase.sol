@@ -115,6 +115,11 @@ contract Feedbase200 is FeedbaseInterface200
         LogSet(id, value, expiration);
     }
 
+    function set(bytes12 id, bytes32 value)
+    {
+        set(id, value, uint40(-1));
+    }
+
     function set_owner(bytes12 id, address owner)
         feed_auth(id)
     {

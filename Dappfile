@@ -1,12 +1,24 @@
 name: feedbase
-version: 0.10
+version: 0.1
 layout:
-  sol_sources: src
-  build_dir: build
-  packages_directory: .dapple/packages/
+  sol_sources: ./src
+  build_dir: ./build
+  packages_directory: ./.dapple/packages/
 dependencies: {}
 environments:
   develop:
     objects: {}
     type: internal
-dapple_version: 0.8.36
+  ropsten:
+    objects:
+      feedbase:
+        value: '0xaa63c8683647ef91b3fdab4b4989ee9588da297b'
+        type: >-
+          Feedbase200[282b38333408c885a889cc295f573bac4b5e65f290fa838a40bae0d8d6af032c]
+    type: ropsten
+dapple_version: 0.8.39
+description: ''
+authors: []
+license: Apache-2.0
+keywords:
+  - dapple

@@ -1,7 +1,4 @@
-**Note:**  DSFeeds is still under development.  There is no live
-network deployment, and the Morden address may be updated at any time.
-(If you prefer, you can easily deploy your own instances of DSFeeds.)
-
+**Note:**  DSFeeds is still under development.
 
 DSFeeds
 ========
@@ -31,19 +28,43 @@ it's free for anyone to use, and not owned or controlled by anyone.
 Getting started
 ---------------
 
-DSFeeds comes with a simple commmand-line tool for managing feeds:
+DSFeeds has a command line tool which can be used by two different ways:
 
-    npm install -g ds-feeds
+1- Downloading this repository and following the next steps.
 
-To specify which Ethereum account to use (defaults to the first one):
+- node package installed (https://nodejs.org/en/)
+- solc packge installed (http://solidity.readthedocs.io/en/develop/installing-solidity.html)
+- dapple package installed - (npm install -g dapple)
+- git clone git@github.com:dapphub/ds-feeds.git
+- cd ds-feeds/
+- git submodule update --init --recursive
+- cd cli/
+- npm install
+- npm run build
 
-    export ETH_ACCOUNT=0x1234567890123456789012345678901234567890
+Command line tool can be called on ds-feeds/cli directory:
+
+
+    node dsfeeds [command] [args] 
+
+2- Downloading commmand-line tool directly from npm:
+
+- npm install -g dsfeeds
+
+In this case, command line toold can be called globally using:
+    
+
+    dsfeeds [command] [args]
 
 For anything to happen, you need to run an RPC-enabled Ethereum node:
 
     geth --testnet --rpc --unlock 0x1234567890123456789012345678901234567890
 
-**Important:** Make sure your chain is synced before using `ds-feeds`.
+    or
+
+    parity --testnet (Using Signer for approving transactions)
+
+**Important:** Make sure your chain is synced before using `dsfeeds`.
 
 
 Working with feeds
@@ -51,24 +72,18 @@ Working with feeds
 
 To start publishing your values, first claim a feed ID:
 
-    ds-feeds claim
-
-If you want to be able to tax your smart contract consumers, this step
-is where you specify the address of your (ERC20-compatible) token:
-
-    ds-feeds claim 0x4244e29ec71fc32a34dba8e89d4856e507d1bc87
+    dsfeeds claim
 
 If nothing goes wrong (sad to say, the CLI is a bit flaky sometimes),
 within a minute you should see something like this:
 
     {
       "id": 7302,
-      "token": "0x0000000000000000000000000000000000000000",
       "owner": "0x34e510285d96cdc6063d5447763afea0acd61baa",
       "label": "",
       "price": 0,
       "available": false,
-      "value": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "value": 0,
       "timestamp": 0,
       "expiration": 0,
       "unpaid": false
@@ -76,44 +91,36 @@ within a minute you should see something like this:
 
 Now you can do a few things.  You can inspect the feed at will:
 
-    ds-feeds inspect 7302
-
-**Note:** Although you are an off-chain consumer who can in principle
-read the value of any feed for free, the `ds-feeds inspect` command is
-not currently able to display the value of a feed unless it's either
-free or you could hypothetically pay for it (then it's "available");
-this is because it's implemented using the `eth_call` RPC operation.
-If the value has expired or cannot be read, it will show up as zero
-and the `available` property will be set to `false`.
+    dsfeeds inspect 7302
 
 You can set an arbitrary label (32 bytes maximum):
 
-    ds-feeds set-label 7302 "Temperature in Central Park"
-
-If you specified a token, you can change the price:
-
-    ds-feeds set-price 7302 0x10000000
+    dsfeeds set_label 7302 "Temperature in Central Park"
 
 You can transfer ownership of the feed to another account:
 
-    ds-feeds set-owner 7302 0x4b51d646f0e3677411b27101d2a3f09223a8372e
+    dsfeeds set_owner 7302 0x4b51d646f0e3677411b27101d2a3f09223a8372e
 
 You can also continuously watch the blockchain for all DSFeeds events:
 
-    ds-feeds watch
+    dsfeeds watch
 
 Now, to actually update the feed value, you'd use a command like this:
 
-    ds-feeds set 7302 0x0000000000000000000000000000000490000000000000000000000000000000 1467204471
+    dsfeeds set 7302 73 1467204471
 
-Here, we're setting the value of feed number 7302 to the number 73
-represented in 128x128 fixed-point notation.  The expiration date is
-set to June 29 12:47:51 UTC 2016 (represented in standard Unix time).
+Here, we're setting the value of feed number 7302 to the number 73.
+The expiration date is set to June 29 12:47:51 UTC 2016 (represented in standard Unix time).
 
 Again, the values can be anything as long as they fit within 32 bytes.
 
-That's it!
+**Note:** This command line tool automatically transform the integer value to bytes32 (parameter contract expects).
 
+To have a complete overview of the possible commands, you can run:
+
+    dsfeeds --help
+
+That's it!
 
 More information
 ----------------

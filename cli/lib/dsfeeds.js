@@ -1,5 +1,5 @@
-const web3 = require('./web3');
-const DSFeeds = require('./lib/js_module');
+const web3 = require('../web3');
+const DSFeeds = require('./js_module');
 
 module.exports = (address, env) => {
   DSFeeds.environments[env].feeds.value = address;

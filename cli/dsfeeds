@@ -8,7 +8,7 @@ const inquirer = require('inquirer');
 const Preferences = require('preferences');
 const web3 = require('./web3');
 const utils = require('./utils');
-const dsfeeds = require('./ds-feeds');
+const dsfeeds = require('./lib/dsfeeds');
 
 const Spinner = CLI.Spinner;
 const status = new Spinner('Connecting to network...');

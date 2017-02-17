@@ -1,9 +1,0 @@
-{
-  "name": "feedbase",
-  "version": "0.9.0",
-  "bin": "bin/feedbase",
-  "main": "lib/feedbase.js",
-  "dependencies": {
-    "web3": "^0.16.0"
-  }
-}

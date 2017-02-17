@@ -1,4 +1,4 @@
-name: feedbase
+name: feeds
 version: 0.1
 layout:
   sol_sources: ./src

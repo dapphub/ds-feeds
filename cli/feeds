@@ -1,0 +1,195 @@
+#! /usr/bin/env node
+
+const pkg = require('./package.json');
+const prettyjson = require('prettyjson');
+const program = require('commander');
+const CLI = require('clui');
+const inquirer = require('inquirer');
+const Preferences = require('preferences');
+const web3 = require('./web3');
+const utils = require('./utils');
+const dsfeeds = require('./ds-feeds');
+
+const Spinner = CLI.Spinner;
+const status = new Spinner('Connecting to network...');
+
+const prefs = new Preferences('com.dapphub.dsfeeds');
+
+function dump(data, options = {}) {
+  console.log(prettyjson.render(data, options));
+}
+
+function clearPreferences() {
+  Object.keys(prefs).forEach((prop) => {
+    delete prefs[prop];
+  });
+}
+function showAccountSelector() {
+  const question = [
+    {
+      name: 'account',
+      message: 'Select your default account:',
+      type: 'list',
+      choices: web3.eth.accounts,
+    },
+  ];
+  return inquirer.prompt(question);
+}
+
+function getDefaultAccount() {
+  if (prefs.account) {
+    return Promise.resolve({ account: prefs.account });
+  }
+  return showAccountSelector();
+}
+
+function askForAddress() {
+  if (prefs.contract) {
+    return Promise.resolve({ address: prefs.address });
+  }
+  const questions = [
+    {
+      name: 'address',
+      message: 'Enter address:',
+      type: 'input',
+      default: prefs.address || '',
+      validate: str => (
+        web3.isAddress(str) || 'Invalid address'
+      ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function runMethod(method, args) {
+  // status.start();
+  utils.getNetwork().then((network) => {
+    status.stop();
+    prefs.network = network;
+    return getDefaultAccount();
+  })
+  .then((answer) => {
+    prefs.account = answer.account;
+    web3.eth.defaultAccount = answer.account;
+    return askForAddress();
+  })
+  .then((answer) => {
+    prefs.address = answer.address;
+    const dsfeedsOb = dsfeeds(prefs.address, prefs.network);
+    if (dsfeedsOb[method]) {
+      if (method === 'inspect') {
+        console.log('Getting result... Please wait.');
+        dump(dsfeedsOb.inspect(...utils.prepareArgs(args, 'bytes12')));
+      } else {
+        const setterMethod = method === 'claim' || method === 'set' || method.indexOf('set_') !== -1 || method === 'unset';
+        const subMethod = utils.detectMethodArgs(dsfeedsOb[method], args.length);
+        let func = subMethod ? dsfeedsOb[method][subMethod] : dsfeedsOb[method];
+        func = setterMethod ? func : func.call;
+        const preparedArgs = subMethod ? utils.prepareArgs(args, subMethod) : args;
+        if (setterMethod) {
+          console.log('Waiting for your approval... Please sign the transaction.');
+        } else {
+          console.log('Getting result... Please wait.');
+        }
+        func(...preparedArgs, (e, r) => {
+          if (!e) {
+            if (!e) {
+              if (setterMethod) {
+                // It means we are calling a writing method
+                console.log(`Transaction ${r} was generated. Waiting for confirmation...`);
+
+                dsfeedsOb.filter({}, (err, id) => {
+                  if (err) {
+                    console.log('Error: ', err.message);
+                  } else if (dsfeedsOb.owner(id) === prefs.account) {
+                    dump(dsfeedsOb.inspect(id.substring(0, 26)));
+                  } else {
+                    console.warn('Something weird: ', id);
+                  }
+                  process.exit();
+                });
+              } else {
+                // It means we are calling a read method
+                dump(r);
+              }
+            } else {
+              console.warn('Something weird: ', e);
+            }
+          }
+        });
+      }
+    }
+  })
+  .catch((error) => {
+    status.stop();
+    console.log(error);
+    process.exit(1);
+  });
+}
+
+program
+  .version(pkg.version)
+  .option('-c, --clear', 'clear user preferences')
+  .option('-a, --account [account]', 'set default account')
+  .option('-i, --info', 'prints default information');
+
+const commands = [
+  'inspect [feedbaseId]',
+  'owner [feedbaseId]',
+  'label [feedbaseId]',
+  'timestamp [feedbaseId]',
+  'expiration [feedbaseId]',
+  'expired [feedbaseId]',
+  'get [feedbaseId]',
+  'tryGet [feedbaseId]',
+  'claim',
+  'set [feedbaseId, value, expiration]',
+  'set [feedbaseId, value] (expiration = unlimited)',
+  'set_owner [feedbaseId, ownerAddress]',
+  'set_label [feedbaseId, labelText]',
+];
+
+commands.map(command => command.split(' ')[0]).filter(utils.unique).forEach((command) => {
+  program
+  .command(`${command} [args...]`)
+  .action((args) => {
+    runMethod(command, args);
+  });
+});
+
+program.on('--help', () => {
+  console.log('  Examples:');
+  console.log('');
+  commands.forEach((command) => {
+    console.log(`    $ feeds ${command}`);
+  });
+  console.log('');
+});
+
+program.parse(process.argv); // end with parse to parse through the input
+
+if (program.clear) {
+  clearPreferences();
+  console.log('Cleared preferences.');
+}
+
+if (program.account) {
+  if (program.account === true) {
+    showAccountSelector().then((answer) => {
+      prefs.account = answer.account;
+      web3.eth.defaultAccount = answer.account;
+    });
+  } else if (web3.isAddress(program.account)) {
+    prefs.account = program.account;
+    web3.eth.defaultAccount = program.account;
+    console.log('Set default account');
+  } else {
+    console.log('Error: account invalid');
+  }
+}
+
+if (program.info) {
+  dump(prefs);
+}
+
+// if (!program.args.length) program.help();

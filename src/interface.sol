@@ -17,7 +17,7 @@
 pragma solidity ^0.4.4;
 
 
-contract FeedbaseEvents200 {
+contract DSFeedsEvents200 {
     event LogClaim     (bytes12 indexed id, address owner);
     event LogSet       (bytes12 indexed id, bytes32 value, uint40 expiration);
     event LogSetOwner  (bytes12 indexed id, address owner);
@@ -25,7 +25,7 @@ contract FeedbaseEvents200 {
 }
 
 
-contract FeedbaseInterface200 {
+contract DSFeedsInterface200 {
     function claim() returns (bytes12 id);
     function set(bytes12 id, bytes32 value, uint40 expiration);
     function has(bytes12 id) returns (bool ok);

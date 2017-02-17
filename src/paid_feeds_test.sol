@@ -1,23 +1,23 @@
-/// feedbase_test.sol --- functional tests for `feedbase.sol'
+/// feeds_test.sol --- functional tests for `feeds.sol'
 
 // Copyright (C) 2015-2016  Nexus Development <https://nexusdev.us>
 // Copyright (C) 2015-2016  Nikolai Mushegian <nikolai@nexusdev.us>
 // Copyright (C) 2016       Daniel Brockman   <daniel@brockman.se>
 
-// This file is part of Feedbase.
+// This file is part of DSFeeds.
 
-// Feedbase is free software; you can redistribute and/or modify it
+// DSFeeds is free software; you can redistribute and/or modify it
 // under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// Feedbase is distributed in the hope that it will be useful,
+// DSFeeds is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty
 // of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Feedbase.  If not, see <http://www.gnu.org/licenses/>.
+// along with DSFeeds.  If not, see <http://www.gnu.org/licenses/>.
 
 /// Code:
 
@@ -26,20 +26,20 @@ pragma solidity ^0.4.4;
 import "dapple/test.sol";
 import "erc20/erc20.sol";
 import "./interface.sol";
-import "./paid_feedbase.sol";
+import "./paid_feeds.sol";
 
-contract PaidFeedbaseTest is Test,
-    PaidFeedbaseEvents
+contract PaidDSFeedsTest is Test,
+    PaidDSFeedsEvents
 {
     FakePerson    assistant  = new FakePerson();
     FakeToken     token      = new FakeToken();
-    PaidFeedbase  feedbase   = new PaidFeedbase();
+    PaidDSFeeds   feeds      = new PaidDSFeeds();
 
     bytes12       id;
 
     function setUp() {
-        assistant._target(feedbase);
-        id = feedbase.claim(token);
+        assistant._target(feeds);
+        id = feeds.claim(token);
     }
 
     function time() returns (uint40) {
@@ -48,16 +48,16 @@ contract PaidFeedbaseTest is Test,
 
     function test_claim() {
         assertEq(uint(id), 1);
-        assertEq(uint(feedbase.claim()), 2);
+        assertEq(uint(feeds.claim()), 2);
     }
 
     function test_get() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        id = feedbase.claim();
+        id = feeds.claim();
         LogClaim(id, address(this));
 
-        feedbase.set(id, 0x1234, time() + 1);
+        feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
         var (value, ok) = assistant.tryGet(id);
@@ -66,23 +66,23 @@ contract PaidFeedbaseTest is Test,
     }
 
     function test_get_expired() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set(id, 0x1234, 123);
+        feeds.set(id, 0x1234, 123);
         LogSet(id, 0x1234, 123);
 
-        var (value, ok) = feedbase.tryGet(id);
+        var (value, ok) = feeds.tryGet(id);
         assertEq32(value, 0);
         assertFalse(ok);
     }
 
     function test_payment() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_price(id, 50);
+        feeds.set_price(id, 50);
         LogSetPrice(id, 50);
 
-        feedbase.set(id, 0x1234, time() + 1);
+        feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
         token.set_balance(assistant, 2000);
@@ -96,12 +96,12 @@ contract PaidFeedbaseTest is Test,
     }
 
     function test_already_paid() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_price(id, 50);
+        feeds.set_price(id, 50);
         LogSetPrice(id, 50);
 
-        feedbase.set(id, 0x1234, time() + 1);
+        feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
         token.set_balance(assistant, 2000);
@@ -119,12 +119,12 @@ contract PaidFeedbaseTest is Test,
     }
 
     function test_failed_payment_throwing_token() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_price(id, 50);
+        feeds.set_price(id, 50);
         LogSetPrice(id, 50);
 
-        feedbase.set(id, 0x1234, time() + 1);
+        feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
         token.set_balance(assistant, 49);
@@ -137,12 +137,12 @@ contract PaidFeedbaseTest is Test,
     }
 
     function test_failed_payment_nonthrowing_token() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_price(id, 50);
+        feeds.set_price(id, 50);
         LogSetPrice(id, 50);
 
-        feedbase.set(id, 0x1234, time() + 1);
+        feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
         token.set_balance(assistant, 49);
@@ -156,46 +156,46 @@ contract PaidFeedbaseTest is Test,
     }
 
     function testFail_set_price_without_token() {
-        feedbase.set_price(feedbase.claim(), 50);
+        feeds.set_price(feeds.claim(), 50);
     }
 
     function testFail_set_price_unauth() {
-        PaidFeedbase(assistant).set_price(id, 50);
+        PaidDSFeeds(assistant).set_price(id, 50);
     }
 
     function test_set_owner() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_owner(id, assistant);
+        feeds.set_owner(id, assistant);
         LogSetOwner(id, assistant);
 
-        PaidFeedbase(assistant).set_price(id, 50);
+        PaidDSFeeds(assistant).set_price(id, 50);
         LogSetPrice(id, 50);
 
-        assertEq(feedbase.price(id), 50);
+        assertEq(feeds.price(id), 50);
     }
 
     function testFail_set_owner_unauth() {
-        Feedbase200(assistant).set_owner(id, assistant);
+        DSFeeds200(assistant).set_owner(id, assistant);
     }
 
     function test_set_label() {
-        expectEventsExact(feedbase);
+        expectEventsExact(feeds);
 
-        feedbase.set_label(id, "foo");
+        feeds.set_label(id, "foo");
         LogSetLabel(id, "foo");
 
-        assertEq32(feedbase.label(id), "foo");
+        assertEq32(feeds.label(id), "foo");
     }
 
     function testFail_set_label_unauth() {
-        Feedbase200(assistant).set_label(id, "foo");
+        DSFeeds200(assistant).set_label(id, "foo");
     }
 }
 
 contract FakePerson is Tester {
     function tryGet(bytes12 id) returns (bytes32, bool) {
-        return Feedbase200(_t).tryGet(id);
+        return DSFeeds200(_t).tryGet(id);
     }
 }
 

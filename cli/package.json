@@ -7,13 +7,18 @@
     "ds-feeds": "./feeds.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/makerdao/ds-feeds.git"
   },
-  "keywords": ["feedbase", "feed-aggregator", "ethereum"],
+  "keywords": [
+    "feedbase",
+    "feed-aggregator",
+    "ethereum"
+  ],
   "author": "Mariano Conti <nanexcool@gmail.com>",
   "contributors": [
     {
@@ -29,6 +34,7 @@
   "dependencies": {
     "clui": "^0.3.1",
     "commander": "^2.9.0",
+    "gulp": "^3.9.1",
     "inquirer": "^3.0.1",
     "preferences": "^0.2.1",
     "prettyjson": "^1.2.1",

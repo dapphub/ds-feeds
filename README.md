@@ -28,13 +28,16 @@ it's free for anyone to use, and not owned or controlled by anyone.
 Getting started
 ---------------
 
+Before starting, make sure to have installed:
+- node (https://nodejs.org/en/) 
+- geth (https://www.ethereum.org/cli) or parity (https://ethcore.io/parity.html).
+
 DSFeeds has a command line tool which can be used by two different ways:
 
 1- Downloading this repository and following the next steps.
 
-- node package installed (https://nodejs.org/en/)
-- solc packge installed (http://solidity.readthedocs.io/en/develop/installing-solidity.html)
-- dapple package installed - (npm install -g dapple)
+- install solc (http://solidity.readthedocs.io/en/develop/installing-solidity.html)
+- install dapple (npm install -g dapple)
 - git clone git@github.com:dapphub/ds-feeds.git
 - cd ds-feeds/
 - git submodule update --init --recursive
@@ -114,7 +117,7 @@ The expiration date is set to June 29 12:47:51 UTC 2016 (represented in standard
 
 Again, the values can be anything as long as they fit within 32 bytes.
 
-**Note:** This command line tool automatically transform the integer value to bytes32 (parameter contract expects).
+**Note:** This command line tool automatically transforms the integer value to bytes32 (type of parameter that contract expects).
 
 To have a complete overview of the possible commands, you can run:
 

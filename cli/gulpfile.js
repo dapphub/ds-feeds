@@ -1,24 +1,24 @@
-var exec = require('child_process').exec
-var gulp = require('gulp')
+const exec = require('child_process').exec;
+const gulp = require('gulp');
 
 // npm run build
-gulp.task('dapple-build', function (cb) {
-  exec('dapple build', {cwd: '../'}, function (err, res, failed) {
+gulp.task('dapple-build', (cb) => {
+  exec('dapple build', { cwd: '../' }, (err, res, failed) => {
     if (err) {
-      console.log(err)
+      console.log(err);
     } else if (failed) {
-      process.stdout.write(failed)
+      process.stdout.write(failed);
     } else {
-      process.stdout.write('\u001b[32mDapple build completed!\n')
+      process.stdout.write('\u001b[32mDapple build completed!\n');
     }
-    cb(err)
-  })
-})
+    cb(err);
+  });
+});
 
 
-gulp.task('build', ['dapple-build'], function (){
+gulp.task('build', ['dapple-build'], () => {
   return gulp.src([
-      '../build/js_module.js'
+    '../build/js_module.js',
   ])
-  .pipe(gulp.dest('lib/'))
-})
+  .pipe(gulp.dest('lib/'));
+});

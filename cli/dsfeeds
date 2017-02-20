@@ -36,6 +36,21 @@ function showAccountSelector() {
   return inquirer.prompt(question);
 }
 
+function askForContractAddress() {
+  const questions = [
+    {
+      name: 'contract',
+      message: 'Enter feed contract address:',
+      type: 'input',
+      default: prefs.contract || '',
+      validate: str => (
+        web3.isAddress(str) || 'Invalid contract address'
+      ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
 function getDefaultAccount() {
   if (prefs.account) {
     return Promise.resolve({ account: prefs.account });
@@ -43,22 +58,11 @@ function getDefaultAccount() {
   return showAccountSelector();
 }
 
-function askForAddress() {
+function getDefaultContractAddress() {
   if (prefs.contract) {
-    return Promise.resolve({ address: prefs.address });
+    return Promise.resolve({ contract: prefs.contract });
   }
-  const questions = [
-    {
-      name: 'address',
-      message: 'Enter address:',
-      type: 'input',
-      default: prefs.address || '',
-      validate: str => (
-        web3.isAddress(str) || 'Invalid address'
-      ),
-    },
-  ];
-  return inquirer.prompt(questions);
+  return askForContractAddress();
 }
 
 function runMethod(method, args) {
@@ -71,11 +75,11 @@ function runMethod(method, args) {
   .then((answer) => {
     prefs.account = answer.account;
     web3.eth.defaultAccount = answer.account;
-    return askForAddress();
+    return getDefaultContractAddress();
   })
   .then((answer) => {
-    prefs.address = answer.address;
-    const dsfeedsOb = dsfeeds(prefs.address, prefs.network);
+    prefs.contract = answer.contract;
+    const dsfeedsOb = dsfeeds(prefs.contract, prefs.network);
     if (dsfeedsOb[method]) {
       if (method === 'inspect') {
         console.log('Getting result... Please wait.');
@@ -131,6 +135,7 @@ program
   .version(pkg.version)
   .option('-c, --clear', 'clear user preferences')
   .option('-a, --account [account]', 'set default account')
+  .option('-f, --contract [account]', 'set default feed contract address')
   .option('-i, --info', 'prints default information');
 
 const commands = [
@@ -185,6 +190,19 @@ if (program.account) {
     console.log('Set default account');
   } else {
     console.log('Error: account invalid');
+  }
+}
+
+if (program.contract) {
+  if (program.contract === true) {
+    askForContractAddress().then((answer) => {
+      prefs.contract = answer.contract;
+    });
+  } else if (web3.isAddress(program.contract)) {
+    prefs.contract = program.contract;
+    console.log('Set feed contract address');
+  } else {
+    console.log('Error: feed contract address invalid');
   }
 }
 

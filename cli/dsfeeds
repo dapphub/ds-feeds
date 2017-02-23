@@ -6,14 +6,23 @@ const program = require('commander');
 const CLI = require('clui');
 const inquirer = require('inquirer');
 const Preferences = require('preferences');
-const web3 = require('./web3');
-const utils = require('./utils');
 const dsfeeds = require('./lib/dsfeeds');
 
 const Spinner = CLI.Spinner;
 const status = new Spinner('Connecting to network...');
 
 const prefs = new Preferences('com.dapphub.dsfeeds');
+
+if (!prefs.rpcUrl) {
+  prefs.rpcUrl = 'localhost';
+}
+
+if (!prefs.rpcPort) {
+  prefs.rpcPort = 8545;
+}
+
+const web3 = require('./web3');
+const utils = require('./utils');
 
 function dump(data, options = {}) {
   console.log(prettyjson.render(data, options));
@@ -46,6 +55,36 @@ function askForContractAddress() {
       validate: str => (
         web3.isAddress(str) || 'Invalid contract address'
       ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function askForRPCUrl() {
+  const questions = [
+    {
+      name: 'rpcUrl',
+      message: 'Enter RPC Url:',
+      type: 'input',
+      default: prefs.rpcUrl || 'localhost',
+      // validate: str => (
+      //   web3.isAddress(str) || 'Invalid contract address'
+      // ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function askForRPCPort() {
+  const questions = [
+    {
+      name: 'rpcPort',
+      message: 'Enter RPC Port:',
+      type: 'input',
+      default: prefs.rpcPort || 8545,
+      // validate: str => (
+      //   parseInt(str, 10) != 'NaN' || 'Invalid port number'
+      // ),
     },
   ];
   return inquirer.prompt(questions);
@@ -106,7 +145,7 @@ function runMethod(method, args) {
   })
   .then((answer) => {
     prefs.contract = answer.contract;
-    const dsfeedsOb = dsfeeds(prefs.contract, prefs.network);
+    const dsfeedsOb = dsfeeds(prefs.contract, prefs.network, web3);
     if (dsfeedsOb[method]) {
       if (method === 'inspect') {
         console.log('Getting result... Please wait.');
@@ -151,6 +190,8 @@ program
   .version(pkg.version)
   .option('-c, --clear', 'clear user preferences')
   .option('-a, --account [account]', 'set default account')
+  .option('--rpc-url [url]', 'set RPC url')
+  .option('--rpc-port [port]', 'set RPC port')
   .option('-f, --contract [account]', 'set default feed contract address')
   .option('-i, --info', 'prints default information');
 
@@ -198,6 +239,34 @@ if (program.clear) {
   console.log('Cleared preferences.');
 }
 
+if (program.rpcUrl) {
+  if (program.rpcUrl === true && !command) {
+    askForRPCUrl().then((answer) => {
+      prefs.rpcUrl = answer.rpcUrl;
+    });
+  } else if (program.rpcUrl) {
+    prefs.rpcUrl = program.rpcUrl;
+    console.log('Set default RPC Url');
+  } else {
+    console.log('Error: RPC Url invalid');
+    process.exit(1);
+  }
+}
+
+if (program.rpcPort) {
+  if (program.rpcPort === true && !command) {
+    askForRPCPort().then((answer) => {
+      prefs.rpcPort = answer.rpcPort;
+    });
+  } else if (program.rpcPort) {
+    prefs.rpcPort = program.rpcPort;
+    console.log('Set default RPC Port');
+  } else {
+    console.log('Error: RPC Port invalid');
+    process.exit(1);
+  }
+}
+
 if (program.account) {
   if (program.account === true && !command) {
     showAccountSelector().then((answer) => {
@@ -235,7 +304,7 @@ if (program.info) {
 if (command) {
   runMethod(command, args);
 } else {
-  if (!program.info && !program.account && !program.contract && !program.clear) {
+  if (!program.info && !program.account && !program.contract && !program.clear && !program.rpcUrl && !program.rpcPort) {
     program.help();
   }
 }

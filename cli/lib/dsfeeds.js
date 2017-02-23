@@ -1,7 +1,6 @@
-const web3 = require('../web3');
 const DSFeeds = require('./js_module');
 
-module.exports = (address, env) => {
+module.exports = (address, env, web3) => {
   DSFeeds.environments[env].feeds.value = address;
   DSFeeds.class(web3, env);
   const toString = x => web3.toAscii(x).replace(/\0/g, '');

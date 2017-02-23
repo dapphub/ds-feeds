@@ -13,6 +13,7 @@ function toBytes12(number) {
 module.exports = {
   toBytes,
   toBytes12,
+  
   getNetwork: () => (
     new Promise((resolve, reject) => {
       web3.version.getNetwork((error, result) => {
@@ -23,17 +24,6 @@ module.exports = {
           const network = result > 3 ? 4 : result;
           const env = [null, 'live', 'morden', 'ropsten', 'develop'][network];
           resolve(env);
-        }
-      });
-    })
-  ),
-  getAccounts: () => (
-    new Promise((resolve, reject) => {
-      web3.eth.getAccounts((error, accounts) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(accounts);
         }
       });
     })

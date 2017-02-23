@@ -1,7 +1,5 @@
-const web3 = require('./web3');
-
 function toBytes(number, bytes) {
-  let hex = web3.fromDecimal(number).replace('0x', '');
+  let hex = number.toString(16);
   while (hex.length < bytes * 2) hex = `0${hex}`;
   return `0x${hex}`;
 }
@@ -13,8 +11,8 @@ function toBytes12(number) {
 module.exports = {
   toBytes,
   toBytes12,
-  
-  getNetwork: () => (
+
+  getNetwork: web3 => (
     new Promise((resolve, reject) => {
       web3.version.getNetwork((error, result) => {
         if (error) {
@@ -48,7 +46,7 @@ module.exports = {
     const argsType = format.split(',');
     let val = null;
 
-    if (args.length !== argsType.length) return false;
+    if (args.length !== argsType.length) return [];
 
     const returnArgs = [];
     for (let i = 0; i < args.length; i += 1) {

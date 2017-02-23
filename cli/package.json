@@ -32,7 +32,6 @@
   },
   "homepage": "https://github.com/makerdao/ds-feeds#readme",
   "dependencies": {
-    "clui": "^0.3.1",
     "commander": "^2.9.0",
     "gulp": "^3.9.1",
     "inquirer": "^3.0.1",

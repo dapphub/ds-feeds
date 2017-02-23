@@ -65,6 +65,33 @@ function getDefaultContractAddress() {
   return askForContractAddress();
 }
 
+function executeMehod(func, preparedArgs, setterMethod, dsfeedsOb) {
+  func(...preparedArgs, (e, r) => {
+    if (!e) {
+      if (setterMethod) {
+        // It means we are calling a writing method
+        console.log(`Transaction ${r} was generated. Waiting for confirmation...`);
+
+        dsfeedsOb.filter({}, (err, id) => {
+          if (err) {
+            console.log('Error: ', err.message);
+          } else if (dsfeedsOb.owner(id) === prefs.account) {
+            dump(dsfeedsOb.inspect(id.substring(0, 26)));
+          } else {
+            console.warn('Something weird: ', id);
+          }
+          process.exit();
+        });
+      } else {
+        // It means we are calling a read method
+        dump(r);
+      }
+    } else {
+      console.warn('Something weird: ', e);
+    }
+  });
+}
+
 function runMethod(method, args) {
   // status.start();
   utils.getNetwork().then((network) => {
@@ -91,36 +118,25 @@ function runMethod(method, args) {
         func = setterMethod ? func : func.call;
         const preparedArgs = subMethod ? utils.prepareArgs(args, subMethod) : args;
         if (setterMethod) {
-          console.log('Waiting for your approval... Please sign the transaction.');
-        } else {
-          console.log('Getting result... Please wait.');
-        }
-        func(...preparedArgs, (e, r) => {
-          if (!e) {
+          web3.eth.getBalance(prefs.account, (e, r) => {
             if (!e) {
-              if (setterMethod) {
-                // It means we are calling a writing method
-                console.log(`Transaction ${r} was generated. Waiting for confirmation...`);
-
-                dsfeedsOb.filter({}, (err, id) => {
-                  if (err) {
-                    console.log('Error: ', err.message);
-                  } else if (dsfeedsOb.owner(id) === prefs.account) {
-                    dump(dsfeedsOb.inspect(id.substring(0, 26)));
-                  } else {
-                    console.warn('Something weird: ', id);
-                  }
-                  process.exit();
-                });
+              if (r === 0) {
+                console.log('Transaction can not be signed. No balance in account.');
               } else {
-                // It means we are calling a read method
-                dump(r);
+                if (web3.fromWei(r) < 0.1) {
+                  console.log('Warning: Account balance is low. Transaction might not go through.');
+                }
+                console.log('Waiting for your approval... Please sign the transaction.');
+                executeMehod(func, preparedArgs, setterMethod, dsfeedsOb);
               }
             } else {
               console.warn('Something weird: ', e);
             }
-          }
-        });
+          });
+        } else {
+          console.log('Getting result... Please wait.');
+          executeMehod(func, preparedArgs, setterMethod, dsfeedsOb);
+        }
       }
     }
   })

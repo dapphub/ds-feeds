@@ -120,10 +120,10 @@ function runMethod(method, args) {
         if (setterMethod) {
           web3.eth.getBalance(prefs.account, (e, r) => {
             if (!e) {
-              if (r === 0) {
+              if (r.toNumber() === 0) {
                 console.log('Transaction can not be signed. No balance in account.');
               } else {
-                if (web3.fromWei(r) < 0.1) {
+                if (web3.fromWei(r) < 0.01) {
                   console.log('Warning: Account balance is low. Transaction might not go through.');
                 }
                 console.log('Waiting for your approval... Please sign the transaction.');
@@ -170,11 +170,15 @@ const commands = [
   'set_label [feedbaseId, labelText]',
 ];
 
-commands.map(command => command.split(' ')[0]).filter(utils.unique).forEach((command) => {
+let command;
+let args;
+
+commands.map(_command => _command.split(' ')[0]).filter(utils.unique).forEach((_command) => {
   program
-  .command(`${command} [args...]`)
-  .action((args) => {
-    runMethod(command, args);
+  .command(`${_command} [args...]`)
+  .action((_args) => {
+    command = _command;
+    args = _args;
   });
 });
 
@@ -195,7 +199,7 @@ if (program.clear) {
 }
 
 if (program.account) {
-  if (program.account === true) {
+  if (program.account === true && !command) {
     showAccountSelector().then((answer) => {
       prefs.account = answer.account;
       web3.eth.defaultAccount = answer.account;
@@ -206,11 +210,12 @@ if (program.account) {
     console.log('Set default account');
   } else {
     console.log('Error: account invalid');
+    process.exit(1);
   }
 }
 
 if (program.contract) {
-  if (program.contract === true) {
+  if (program.contract === true && !command) {
     askForContractAddress().then((answer) => {
       prefs.contract = answer.contract;
     });
@@ -219,6 +224,7 @@ if (program.contract) {
     console.log('Set feed contract address');
   } else {
     console.log('Error: feed contract address invalid');
+    process.exit(1);
   }
 }
 
@@ -226,4 +232,10 @@ if (program.info) {
   dump(prefs);
 }
 
-// if (!program.args.length) program.help();
+if (command) {
+  runMethod(command, args);
+} else {
+  if (!program.info && !program.account && !program.contract && !program.clear) {
+    program.help();
+  }
+}

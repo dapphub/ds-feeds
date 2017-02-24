@@ -1,10 +1,10 @@
 {
-  "name": "ds-feeds",
+  "name": "dsfeeds",
   "version": "0.1.0",
   "description": "Command line app to manage feeds easily.",
-  "main": "./feeds.js",
+  "main": "./dsfeeds",
   "bin": {
-    "ds-feeds": "./feeds.js"
+    "dsfeeds": "./dsfeeds"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

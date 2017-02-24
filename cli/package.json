@@ -1,6 +1,6 @@
 {
   "name": "dsfeeds",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Command line app to manage feeds easily.",
   "main": "./dsfeeds",
   "bin": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/makerdao/ds-feeds.git"
+    "url": "git+https://github.com/dapphub/ds-feeds.git"
   },
   "keywords": [
     "feedbase",

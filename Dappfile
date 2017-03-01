@@ -1,4 +1,4 @@
-name: feedbase
+name: feeds
 version: 0.1
 layout:
   sol_sources: ./src
@@ -9,14 +9,16 @@ environments:
   develop:
     objects: {}
     type: internal
+    chain: ''
   ropsten:
     objects:
-      feedbase:
-        value: '0xaa63c8683647ef91b3fdab4b4989ee9588da297b'
+      feeds:
+        value: '0xa7d7eeac1e2b36dcba81068e927f276446ef7bce'
         type: >-
-          Feedbase200[282b38333408c885a889cc295f573bac4b5e65f290fa838a40bae0d8d6af032c]
+          DSFeeds200[991573b962520dcbecc610d1a431b818e204895c7b3ab1e11d8b1c5f24cd1fd7]
     type: ropsten
-dapple_version: 0.8.39
+    chain: ''
+dapple_version: 0.8.46
 description: ''
 authors: []
 license: Apache-2.0

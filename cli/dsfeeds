@@ -1,0 +1,305 @@
+#! /usr/bin/env node
+
+const pkg = require('./package.json');
+const prettyjson = require('prettyjson');
+const program = require('commander');
+const inquirer = require('inquirer');
+const Preferences = require('preferences');
+const dsfeeds = require('./lib/dsfeeds');
+const utils = require('./utils');
+
+const prefs = new Preferences('com.dapphub.dsfeeds');
+if (!prefs.rpcHost) {
+  prefs.rpcHost = 'localhost';
+}
+if (!prefs.rpcPort) {
+  prefs.rpcPort = 8545;
+}
+
+const web3 = require('./web3')(prefs);
+
+function dump(data, options = {}) {
+  console.log(prettyjson.render(data, options));
+}
+
+function clearPreferences() {
+  Object.keys(prefs).forEach((prop) => {
+    delete prefs[prop];
+  });
+}
+function showAccountSelector() {
+  const question = [
+    {
+      name: 'account',
+      message: 'Select your default account:',
+      type: 'list',
+      choices: web3.eth.accounts,
+    },
+  ];
+  return inquirer.prompt(question);
+}
+
+function askForContractAddress() {
+  const questions = [
+    {
+      name: 'contract',
+      message: 'Enter feed contract address:',
+      type: 'input',
+      default: prefs.contract || '',
+      validate: str => (
+        web3.isAddress(str) || 'Invalid contract address'
+      ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function askForRPCHost() {
+  const questions = [
+    {
+      name: 'rpcHost',
+      message: 'Enter RPC Url:',
+      type: 'input',
+      default: prefs.rpcHost || 'localhost',
+      // validate: str => (
+      //   web3.isAddress(str) || 'Invalid contract address'
+      // ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function askForRPCPort() {
+  const questions = [
+    {
+      name: 'rpcPort',
+      message: 'Enter RPC Port:',
+      type: 'input',
+      default: prefs.rpcPort || 8545,
+      // validate: str => (
+      //   parseInt(str, 10) != 'NaN' || 'Invalid port number'
+      // ),
+    },
+  ];
+  return inquirer.prompt(questions);
+}
+
+function getDefaultAccount() {
+  if (prefs.account) {
+    return Promise.resolve({ account: prefs.account });
+  }
+  return showAccountSelector();
+}
+
+function getDefaultContractAddress() {
+  if (prefs.contract) {
+    return Promise.resolve({ contract: prefs.contract });
+  }
+  return askForContractAddress();
+}
+
+function executeMehod(func, preparedArgs, setterMethod, dsfeedsOb) {
+  func(...preparedArgs, (e, r) => {
+    if (!e) {
+      if (setterMethod) {
+        // It means we are calling a writing method
+        console.log(`Transaction ${r} was generated. Waiting for confirmation...`);
+
+        dsfeedsOb.filter({}, (err, id) => {
+          if (err) {
+            console.log('Error: ', err.message);
+          } else if (dsfeedsOb.owner(id) === prefs.account) {
+            dump(dsfeedsOb.inspect(id.substring(0, 26)));
+          } else {
+            console.warn('Something weird: ', id);
+          }
+          process.exit();
+        });
+      } else {
+        // It means we are calling a read method
+        dump(r);
+      }
+    } else {
+      console.warn('Something weird: ', e);
+    }
+  });
+}
+
+function runMethod(method, args) {
+  utils.getNetwork(web3).then((network) => {
+    prefs.network = network;
+    return getDefaultAccount();
+  })
+  .then((answer) => {
+    prefs.account = answer.account;
+    web3.eth.defaultAccount = answer.account;
+    return getDefaultContractAddress();
+  })
+  .then((answer) => {
+    prefs.contract = answer.contract;
+    const dsfeedsOb = dsfeeds(prefs.contract, prefs.network, web3);
+    if (dsfeedsOb[method]) {
+      if (method === 'inspect') {
+        console.log('Getting result... Please wait.');
+        dump(dsfeedsOb.inspect(...utils.prepareArgs(args, 'bytes12')));
+      } else {
+        const setterMethod = method === 'claim' || method === 'set' || method.indexOf('set_') !== -1 || method === 'unset';
+        const subMethod = utils.detectMethodArgs(dsfeedsOb[method], args.length);
+        let func = subMethod ? dsfeedsOb[method][subMethod] : dsfeedsOb[method];
+        func = setterMethod ? func : func.call;
+        const preparedArgs = subMethod ? utils.prepareArgs(args, subMethod) : args;
+        if (setterMethod) {
+          web3.eth.getBalance(prefs.account, (e, r) => {
+            if (!e) {
+              if (r.toNumber() === 0) {
+                console.log('Transaction can not be signed. No balance in account.');
+              } else {
+                if (web3.fromWei(r) < 0.01) {
+                  console.log('Warning: Account balance is low. Transaction might not go through.');
+                }
+                console.log('Waiting for your approval... Please sign the transaction.');
+                executeMehod(func, preparedArgs, setterMethod, dsfeedsOb);
+              }
+            } else {
+              console.warn('Something weird: ', e);
+            }
+          });
+        } else {
+          console.log('Getting result... Please wait.');
+          executeMehod(func, preparedArgs, setterMethod, dsfeedsOb);
+        }
+      }
+    }
+  })
+  .catch((error) => {
+    console.log(error);
+    process.exit(1);
+  });
+}
+
+program
+  .version(pkg.version)
+  .option('-c, --clear', 'clear user preferences')
+  .option('-a, --account [account]', 'set default account')
+  .option('--rpc-host [url]', 'set RPC host')
+  .option('--rpc-port [port]', 'set RPC port')
+  .option('-f, --contract [account]', 'set default feed contract address')
+  .option('-i, --info', 'prints default information');
+
+const commands = [
+  'inspect [feedbaseId]',
+  'owner [feedbaseId]',
+  'label [feedbaseId]',
+  'timestamp [feedbaseId]',
+  'expiration [feedbaseId]',
+  'expired [feedbaseId]',
+  'get [feedbaseId]',
+  'tryGet [feedbaseId]',
+  'claim',
+  'set [feedbaseId, value, expiration]',
+  'set [feedbaseId, value] (expiration = unlimited)',
+  'set_owner [feedbaseId, ownerAddress]',
+  'set_label [feedbaseId, labelText]',
+];
+
+let command;
+let args;
+
+commands.map(_command => _command.split(' ')[0]).filter(utils.unique).forEach((_command) => {
+  program
+  .command(`${_command} [args...]`)
+  .action((_args) => {
+    command = _command;
+    args = _args;
+  });
+});
+
+program.on('--help', () => {
+  console.log('  Examples:');
+  console.log('');
+  commands.forEach((_command) => {
+    console.log(`    $ feeds ${_command}`);
+  });
+  console.log('');
+});
+
+program.parse(process.argv); // end with parse to parse through the input
+
+if (program.clear) {
+  clearPreferences();
+  console.log('Cleared preferences.');
+}
+
+if (program.rpcHost) {
+  if (program.rpcHost === true && !command) {
+    askForRPCHost().then((answer) => {
+      prefs.rpcHost = answer.rpcHost;
+      process.exit(1);
+    });
+  } else if (program.rpcHost) {
+    prefs.rpcHost = program.rpcHost;
+    console.log('Set default RPC Url');
+    process.exit(1);
+  } else {
+    console.log('Error: RPC Url invalid');
+    process.exit(1);
+  }
+}
+
+if (program.rpcPort) {
+  if (program.rpcPort === true && !command) {
+    askForRPCPort().then((answer) => {
+      prefs.rpcPort = answer.rpcPort;
+      process.exit(1);
+    });
+  } else if (program.rpcPort) {
+    prefs.rpcPort = program.rpcPort;
+    console.log('Set default RPC Port');
+    process.exit(1);
+  } else {
+    console.log('Error: RPC Port invalid');
+    process.exit(1);
+  }
+}
+
+if (program.account) {
+  if (program.account === true && !command) {
+    showAccountSelector().then((answer) => {
+      prefs.account = answer.account;
+      web3.eth.defaultAccount = answer.account;
+    });
+  } else if (web3.isAddress(program.account)) {
+    prefs.account = program.account;
+    web3.eth.defaultAccount = program.account;
+    console.log('Set default account');
+  } else {
+    console.log('Error: account invalid');
+    process.exit(1);
+  }
+}
+
+if (program.contract) {
+  if (program.contract === true && !command) {
+    askForContractAddress().then((answer) => {
+      prefs.contract = answer.contract;
+    });
+  } else if (web3.isAddress(program.contract)) {
+    prefs.contract = program.contract;
+    console.log('Set feed contract address');
+  } else {
+    console.log('Error: feed contract address invalid');
+    process.exit(1);
+  }
+}
+
+if (program.info) {
+  dump(prefs);
+}
+
+if (command) {
+  runMethod(command, args);
+} else if (!program.info && !program.account
+      && !program.contract && !program.clear
+      && !program.rpcHost && !program.rpcPort) {
+  program.help();
+}

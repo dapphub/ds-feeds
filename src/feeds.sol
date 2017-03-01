@@ -1,23 +1,23 @@
-/// feedbase.sol --- simple feed-oriented data access pattern
+/// feeds.sol --- simple feed-oriented data access pattern
 
 // Copyright (C) 2015-2016  Nexus Development <https://nexusdev.us>
 // Copyright (C) 2015-2016  Nikolai Mushegian <nikolai@nexusdev.us>
 // Copyright (C) 2016       Daniel Brockman   <daniel@brockman.se>
 
-// This file is part of Feedbase.
+// This file is part of DSFeeds.
 
-// Feedbase is free software; you can redistribute and/or modify it
+// DSFeeds is free software; you can redistribute and/or modify it
 // under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// Feedbase is distributed in the hope that it will be useful,
+// DSFeeds is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty
 // of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 //
 // See the GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License
-// along with Feedbase.  If not, see <http://www.gnu.org/licenses/>.
+// along with DSFeeds.  If not, see <http://www.gnu.org/licenses/>.
 
 /// Commentary:
 
@@ -41,8 +41,8 @@ pragma solidity ^0.4.4;
 import "./interface.sol";
 
 
-contract Feedbase200 is FeedbaseInterface200
-                      , FeedbaseEvents200
+contract DSFeeds200 is DSFeedsInterface200
+                      , DSFeedsEvents200
 {
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;
@@ -158,7 +158,7 @@ contract Feedbase200 is FeedbaseInterface200
         }
     }
 
-    // Override for PaidFeedbase
+    // Override for PaidDSFeeds
     function can_get(address user, bytes12 id)
         internal returns (bool)
     {

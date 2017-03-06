@@ -31,14 +31,14 @@ import "./paid_feeds.sol";
 contract PaidDSFeedsTest is DSTest,
     PaidDSFeedsEvents
 {
-    FakePerson    assistant  = new FakePerson();
+    FakePerson    assistant;
     FakeToken     token      = new FakeToken();
     PaidDSFeeds   feeds      = new PaidDSFeeds();
 
     bytes12       id;
 
     function setUp() {
-        assistant._target(feeds);
+        assistant = new FakePerson(feeds);
         id = feeds.claim(token);
     }
 
@@ -60,9 +60,9 @@ contract PaidDSFeedsTest is DSTest,
         feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
-        var (value, ok) = assistant.tryGet(id);
+        var (value, ok) = assistant.feed().tryGet(id);
         assertEq32(value, 0x1234);
-        assertTrue(ok);
+        assert(ok);
     }
 
     function test_get_expired() {
@@ -73,7 +73,7 @@ contract PaidDSFeedsTest is DSTest,
 
         var (value, ok) = feeds.tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
     }
 
     function test_payment() {
@@ -87,10 +87,10 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 2000);
 
-        var (value, ok) = assistant.tryGet(id);
+        var (value, ok) = assistant.feed().tryGet(id);
         LogPay(id, assistant);
         assertEq32(value, 0x1234);
-        assertTrue(ok);
+        assert(ok);
 
         assertEq(token.balances(assistant), 1950);
     }
@@ -106,14 +106,14 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 2000);
 
-        var (value_1, ok_1) = assistant.tryGet(id);
+        var (value_1, ok_1) = assistant.feed().tryGet(id);
         LogPay(id, assistant);
         assertEq32(value_1, 0x1234);
-        assertTrue(ok_1);
+        assert(ok_1);
 
-        var (value_2, ok_2) = assistant.tryGet(id);
+        var (value_2, ok_2) = assistant.feed().tryGet(id);
         assertEq32(value_2, 0x1234);
-        assertTrue(ok_2);
+        assert(ok_2);
 
         assertEq(token.balances(assistant), 1950);
     }
@@ -129,9 +129,9 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 49);
 
-        var (value, ok) = assistant.tryGet(id);
+        var (value, ok) = assistant.feed().tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
 
         assertEq(token.balances(assistant), 49);
     }
@@ -148,9 +148,9 @@ contract PaidDSFeedsTest is DSTest,
         token.set_balance(assistant, 49);
         token.disable_throwing();
 
-        var (value, ok) = assistant.tryGet(id);
+        var (value, ok) = assistant.feed().tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
 
         assertEq(token.balances(assistant), 49);
     }
@@ -169,7 +169,7 @@ contract PaidDSFeedsTest is DSTest,
         feeds.set_owner(id, assistant);
         LogSetOwner(id, assistant);
 
-        PaidDSFeeds(assistant).set_price(id, 50);
+        assistant.feed().set_price(id, 50);
         LogSetPrice(id, 50);
 
         assertEq(feeds.price(id), 50);
@@ -193,9 +193,11 @@ contract PaidDSFeedsTest is DSTest,
     }
 }
 
-contract FakePerson is Tester {
-    function tryGet(bytes12 id) returns (bytes32, bool) {
-        return DSFeeds200(_t).tryGet(id);
+contract FakePerson {
+    PaidDSFeeds public feed;
+
+    function FakePerson(PaidDSFeeds feed_) {
+        feed = feed_;
     }
 }
 

@@ -1,6 +1,1 @@
-/build
-/build/classes.json
-/node_modules
-/.dapple/chain_db
-*.sw*
 /out

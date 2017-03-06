@@ -3,3 +3,4 @@
 /node_modules
 /.dapple/chain_db
 *.sw*
+/out

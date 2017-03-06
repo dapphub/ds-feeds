@@ -1,26 +1,6 @@
-name: feeds
-version: 0.1
-layout:
-  sol_sources: ./src
-  build_dir: ./build
-  packages_directory: ./.dapple/packages/
-dependencies: {}
-environments:
-  develop:
-    objects: {}
-    type: internal
-    chain: ''
-  ropsten:
-    objects:
-      feeds:
-        value: '0xa7d7eeac1e2b36dcba81068e927f276446ef7bce'
-        type: >-
-          DSFeeds200[991573b962520dcbecc610d1a431b818e204895c7b3ab1e11d8b1c5f24cd1fd7]
-    type: ropsten
-    chain: ''
-dapple_version: 0.8.46
-description: ''
-authors: []
-license: Apache-2.0
-keywords:
-  - dapple
+name            ds-feeds
+description
+kelvin          499
+
+author          dapphub
+license         Apache-2.0

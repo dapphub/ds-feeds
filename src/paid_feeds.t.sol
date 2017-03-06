@@ -1,4 +1,4 @@
-/// feeds_test.sol --- functional tests for `feeds.sol'
+/// paid_feeds.t.sol --- functional tests for `paid_feeds.sol'
 
 // Copyright (C) 2015-2016  Nexus Development <https://nexusdev.us>
 // Copyright (C) 2015-2016  Nikolai Mushegian <nikolai@nexusdev.us>
@@ -21,14 +21,14 @@
 
 /// Code:
 
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
-import "dapple/test.sol";
+import "ds-test/test.sol";
 import "erc20/erc20.sol";
 import "./interface.sol";
 import "./paid_feeds.sol";
 
-contract PaidDSFeedsTest is Test,
+contract PaidDSFeedsTest is DSTest,
     PaidDSFeedsEvents
 {
     FakePerson    assistant  = new FakePerson();

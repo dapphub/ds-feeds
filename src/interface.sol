@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
 
 contract DSFeedsEvents200 {

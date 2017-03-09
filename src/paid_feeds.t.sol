@@ -1,4 +1,4 @@
-/// feeds_test.sol --- functional tests for `feeds.sol'
+/// paid_feeds.t.sol --- functional tests for `paid_feeds.sol'
 
 // Copyright (C) 2015-2016  Nexus Development <https://nexusdev.us>
 // Copyright (C) 2015-2016  Nikolai Mushegian <nikolai@nexusdev.us>
@@ -21,24 +21,26 @@
 
 /// Code:
 
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.8;
 
-import "dapple/test.sol";
+import "ds-test/test.sol";
 import "erc20/erc20.sol";
 import "./interface.sol";
 import "./paid_feeds.sol";
 
-contract PaidDSFeedsTest is Test,
+contract PaidDSFeedsTest is DSTest,
     PaidDSFeedsEvents
 {
-    FakePerson    assistant  = new FakePerson();
-    FakeToken     token      = new FakeToken();
-    PaidDSFeeds   feeds      = new PaidDSFeeds();
+    PaidDSFeeds   feeds;
+    FakeToken     token;
+    FakePerson    assistant;
 
     bytes12       id;
 
     function setUp() {
-        assistant._target(feeds);
+        feeds = new PaidDSFeeds();
+        token = new FakeToken();
+        assistant = new FakePerson(feeds);
         id = feeds.claim(token);
     }
 
@@ -62,7 +64,7 @@ contract PaidDSFeedsTest is Test,
 
         var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0x1234);
-        assertTrue(ok);
+        assert(ok);
     }
 
     function test_get_expired() {
@@ -73,7 +75,7 @@ contract PaidDSFeedsTest is Test,
 
         var (value, ok) = feeds.tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
     }
 
     function test_payment() {
@@ -90,7 +92,7 @@ contract PaidDSFeedsTest is Test,
         var (value, ok) = assistant.tryGet(id);
         LogPay(id, assistant);
         assertEq32(value, 0x1234);
-        assertTrue(ok);
+        assert(ok);
 
         assertEq(token.balances(assistant), 1950);
     }
@@ -109,11 +111,11 @@ contract PaidDSFeedsTest is Test,
         var (value_1, ok_1) = assistant.tryGet(id);
         LogPay(id, assistant);
         assertEq32(value_1, 0x1234);
-        assertTrue(ok_1);
+        assert(ok_1);
 
         var (value_2, ok_2) = assistant.tryGet(id);
         assertEq32(value_2, 0x1234);
-        assertTrue(ok_2);
+        assert(ok_2);
 
         assertEq(token.balances(assistant), 1950);
     }
@@ -131,7 +133,7 @@ contract PaidDSFeedsTest is Test,
 
         var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
 
         assertEq(token.balances(assistant), 49);
     }
@@ -150,7 +152,7 @@ contract PaidDSFeedsTest is Test,
 
         var (value, ok) = assistant.tryGet(id);
         assertEq32(value, 0);
-        assertFalse(ok);
+        assert(!ok);
 
         assertEq(token.balances(assistant), 49);
     }
@@ -160,7 +162,7 @@ contract PaidDSFeedsTest is Test,
     }
 
     function testFail_set_price_unauth() {
-        PaidDSFeeds(assistant).set_price(id, 50);
+        assistant.set_price(id, 50);
     }
 
     function test_set_owner() {
@@ -169,14 +171,14 @@ contract PaidDSFeedsTest is Test,
         feeds.set_owner(id, assistant);
         LogSetOwner(id, assistant);
 
-        PaidDSFeeds(assistant).set_price(id, 50);
+        assistant.set_price(id, 50);
         LogSetPrice(id, 50);
 
         assertEq(feeds.price(id), 50);
     }
 
     function testFail_set_owner_unauth() {
-        DSFeeds200(assistant).set_owner(id, assistant);
+        assistant.set_owner(id, assistant);
     }
 
     function test_set_label() {
@@ -189,13 +191,31 @@ contract PaidDSFeedsTest is Test,
     }
 
     function testFail_set_label_unauth() {
-        DSFeeds200(assistant).set_label(id, "foo");
+        assistant.set_label(id, "foo");
     }
 }
 
-contract FakePerson is Tester {
-    function tryGet(bytes12 id) returns (bytes32, bool) {
-        return DSFeeds200(_t).tryGet(id);
+contract FakePerson {
+    PaidDSFeeds public feed;
+
+    function FakePerson(PaidDSFeeds feed_) {
+        feed = feed_;
+    }
+
+    function tryGet(bytes12 id) returns (bytes32 value, bool ok) {
+        return feed.tryGet(id);
+    }
+
+    function set_price(bytes12 id, uint price) {
+        feed.set_price(id, price);
+    }
+
+    function set_owner(bytes12 id, address owner) {
+        feed.set_owner(id, owner);
+    }
+
+    function set_label(bytes12 id, bytes32 label) {
+        feed.set_label(id, label);
     }
 }
 

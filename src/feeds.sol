@@ -41,8 +41,7 @@ pragma solidity ^0.4.8;
 import "./interface.sol";
 
 
-contract DSFeeds200 is DSFeedsInterface200
-                      , DSFeedsEvents200
+contract DSFeeds is DSFeedsInterface, DSFeedsEvents
 {
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;

@@ -20,12 +20,12 @@ import "erc20/erc20.sol";
 import "./interface.sol";
 import "./feeds.sol";
 
-contract PaidDSFeedsEvents is DSFeedsEvents200 {
+contract PaidDSFeedsEvents is DSFeedsEvents {
     event LogSetPrice  (bytes12 indexed id, uint price);
     event LogPay       (bytes12 indexed id, address indexed user);
 }
 
-contract PaidDSFeeds is PaidDSFeedsEvents, DSFeeds200 {
+contract PaidDSFeeds is PaidDSFeedsEvents, DSFeeds {
     mapping(bytes12=>FeeConfig) fee_config;
     struct FeeConfig {
         ERC20      token;
@@ -61,7 +61,6 @@ contract PaidDSFeeds is PaidDSFeedsEvents, DSFeeds200 {
             return true;
         }
     }
-
 
     function set(bytes12 id, bytes32 value, uint40 expiration) {
         super.set(id, value, expiration);

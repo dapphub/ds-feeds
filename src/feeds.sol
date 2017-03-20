@@ -41,7 +41,7 @@ pragma solidity ^0.4.8;
 import "./interface.sol";
 
 
-contract DSFeeds is DSFeedsInterface, DSFeedsEvents
+contract DSFeeds is DSRead, DSFeedsInterface, DSFeedsEvents
 {
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;
@@ -137,31 +137,20 @@ contract DSFeeds is DSFeedsInterface, DSFeedsEvents
     // Reading feeds
     //------------------------------------------------------------------
 
-    function has(bytes12 id) returns (bool) {
-        if (expired(id)) {
-            return false;
-        } else {
-            return true;
-        }
+    function peek(bytes12 id) constant returns (bool) {
+        return can_get(msg.sender, id);
     }
 
-    function get(bytes12 id) returns (bytes32 value) {
-        var (val, ok) = tryGet(id);
-        if(!ok) throw;
-        return val;
-    }
-
-    function tryGet(bytes12 id) returns (bytes32 value, bool ok) {
-        if (can_get(msg.sender, id)) {
-            return (feeds[id].value, true);
-        }
+    function read(bytes12 id) returns (bytes32 value) {
+        if (!can_get(msg.sender, id)) throw;
+        return feeds[id].value;
     }
 
     // Override for PaidDSFeeds
     function can_get(address user, bytes12 id)
         internal returns (bool)
     {
-        return has(id);
+        return !expired(id);
     }
 
 }

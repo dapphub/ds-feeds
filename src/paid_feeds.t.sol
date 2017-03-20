@@ -62,9 +62,8 @@ contract PaidDSFeedsTest is DSTest,
         feeds.set(id, 0x1234, time() + 1);
         LogSet(id, 0x1234, time() + 1);
 
-        var (value, ok) = assistant.tryGet(id);
+        var value = assistant.read(id);
         assertEq32(value, 0x1234);
-        assert(ok);
     }
 
     function test_get_expired() {
@@ -73,8 +72,7 @@ contract PaidDSFeedsTest is DSTest,
         feeds.set(id, 0x1234, 123);
         LogSet(id, 0x1234, 123);
 
-        var (value, ok) = feeds.tryGet(id);
-        assertEq32(value, 0);
+        var ok = feeds.peek(id);
         assert(!ok);
     }
 
@@ -89,10 +87,11 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 2000);
 
-        var (value, ok) = assistant.tryGet(id);
+        var ok = assistant.peek(id);
+        assert(ok);
+        var value = assistant.read(id);
         LogPay(id, assistant);
         assertEq32(value, 0x1234);
-        assert(ok);
 
         assertEq(token.balances(assistant), 1950);
     }
@@ -108,19 +107,17 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 2000);
 
-        var (value_1, ok_1) = assistant.tryGet(id);
+        var value_1 = assistant.read(id);
         LogPay(id, assistant);
         assertEq32(value_1, 0x1234);
-        assert(ok_1);
 
-        var (value_2, ok_2) = assistant.tryGet(id);
+        var value_2 = assistant.read(id);
         assertEq32(value_2, 0x1234);
-        assert(ok_2);
 
         assertEq(token.balances(assistant), 1950);
     }
 
-    function test_failed_payment_throwing_token() {
+    function testFail_payment_throwing_token() {
         expectEventsExact(feeds);
 
         feeds.set_price(id, 50);
@@ -131,11 +128,7 @@ contract PaidDSFeedsTest is DSTest,
 
         token.set_balance(assistant, 49);
 
-        var (value, ok) = assistant.tryGet(id);
-        assertEq32(value, 0);
-        assert(!ok);
-
-        assertEq(token.balances(assistant), 49);
+        var value = assistant.read(id);
     }
 
     function test_failed_payment_nonthrowing_token() {
@@ -150,8 +143,7 @@ contract PaidDSFeedsTest is DSTest,
         token.set_balance(assistant, 49);
         token.disable_throwing();
 
-        var (value, ok) = assistant.tryGet(id);
-        assertEq32(value, 0);
+        var ok = assistant.peek(id);
         assert(!ok);
 
         assertEq(token.balances(assistant), 49);
@@ -202,8 +194,12 @@ contract FakePerson {
         feed = feed_;
     }
 
-    function tryGet(bytes12 id) returns (bytes32 value, bool ok) {
-        return feed.tryGet(id);
+    function peek(bytes12 id) returns (bool ok) {
+        return feed.peek(id);
+    }
+
+    function read(bytes12 id) returns (bytes32 value) {
+        return feed.read(id);
     }
 
     function set_price(bytes12 id, uint price) {

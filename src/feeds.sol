@@ -38,11 +38,9 @@
 
 pragma solidity ^0.4.8;
 
-import "./read.i.sol";
-import "./write.i.sol";
+import "./interface.sol";
 
-
-contract DSFeeds is DSRead, DSFeedsInterface, DSFeedsEvents
+contract DSFeeds is DSFeedsInterface, DSFeedsEvents
 {
     mapping (bytes12 => Feed) feeds;
     bytes12 next = 0x1;

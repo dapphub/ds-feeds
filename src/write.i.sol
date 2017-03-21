@@ -27,8 +27,3 @@ contract DSFeedsInterface {
     function claim() returns (bytes12 id);
     function set(bytes12 id, bytes32 value, uint40 expiration);
 }
-
-contract DSRead {
-    function peek(bytes12 id) constant returns (bool ok);
-    function read(bytes12 id) returns (bytes32 value);
-}

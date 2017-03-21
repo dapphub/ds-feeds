@@ -17,7 +17,6 @@
 pragma solidity ^0.4.8;
 
 import "erc20/erc20.sol";
-import "./interface.sol";
 import "./feeds.sol";
 
 contract PaidDSFeedsEvents is DSFeedsEvents {

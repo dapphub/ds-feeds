@@ -38,7 +38,8 @@
 
 pragma solidity ^0.4.8;
 
-import "./interface.sol";
+import "./read.i.sol";
+import "./write.i.sol";
 
 
 contract DSFeeds is DSRead, DSFeedsInterface, DSFeedsEvents

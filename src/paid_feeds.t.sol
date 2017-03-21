@@ -25,7 +25,6 @@ pragma solidity ^0.4.8;
 
 import "ds-test/test.sol";
 import "erc20/erc20.sol";
-import "./interface.sol";
 import "./paid_feeds.sol";
 
 contract PaidDSFeedsTest is DSTest,
